@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QLabel>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -89,7 +90,19 @@ private slots:
 
     void on_Slider_text_size_actionTriggered(int action);
 
-private:
+    void on_winterBackground_clicked();
+
+    QFont setQLabeWinterlFont(QLabel *label);
+
+    void SetBackground();
+
+    void SetNormalBackground();
+
+    void EditColorApplication(QString first_color,QString second_color,QString third_color);
+
+    void EditColorApplication(QString first_color,QString second_color,QString third_color,QString fourth_color);
+
+    private:
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H

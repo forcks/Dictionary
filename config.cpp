@@ -6,47 +6,49 @@
 #include <QTextStream>
 #include <QByteArray>
 
+#include "QtSql/QSqlDatabase"
+#include "QSqlQuery"
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QFile>
+
 config::config()
 {
 
 }
 
-bool config::isNotNullConfig(){
-     if(readInConfig()!= nullptr)
-         return true;
-     else
-         return false;
-}
 
 void config::createConfig(){
-    QDir DirConfig;
-    if(DirConfig.mkpath(QApplication::applicationDirPath() + "/config"))
-        qDebug()<<"config folder created !!!";
-    QFile config(QApplication::applicationDirPath() + "/config"+ "/config.txt");
-    if(!config.exists()){
-        config.open(QIODevice::WriteOnly);
-        config.close();
-    }
 }
 
-void config::writeInConfig(QString text){
-    QFile config(QApplication::applicationDirPath() + "/config"+ "/config.txt");
-    if(config.open(QIODevice::WriteOnly)){
-        QTextStream writeStream(&config);
-        writeStream<<text;
-        config.close();
-    }
+void config::writeInConfig(QString key,QString text,QString nameFile){
+    QJsonDocument _jsonDoc;
+    QJsonObject jsonObj;
+    //jsonObj.insert(key,text);
+    jsonObj[key]=text;
+    _jsonDoc.setObject(jsonObj);
+
+    QFile configFile(nameFile+".json");
+    configFile.open(QFile::WriteOnly);
+    configFile.write(_jsonDoc.toJson());
 }
 
-QString config::readInConfig(){
-    QFile config(QApplication::applicationDirPath() + "/config"+ "/config.txt");
-    QByteArray data;
-    if (!config.open(QIODevice::ReadOnly)){
-        qDebug()<<"Config don't want open";
-        return "";
+QString config::readInConfig(QString key,QString anotherValue,QString nameFile){
+    QFile configFile(nameFile+".json");
+    configFile.open(QFile::ReadOnly);
+    QByteArray readValue = QJsonDocument().fromJson(configFile.readAll()).toJson();
+
+    QString jsonStr = QString(readValue);
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonStr.toUtf8());
+    QJsonObject jsonObj = jsonDoc.object();
+    QString searchValue = anotherValue;
+    for (const QString& eachKey : jsonObj.keys())
+    {
+        if(eachKey == key)
+            searchValue= jsonObj.value(eachKey).toString();
     }
-     data = config.readAll();
-     return QString(data);
+    return searchValue;
 }
 
 

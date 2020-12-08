@@ -7,10 +7,9 @@ class config
 {
 public:
     config();
-    bool isNotNullConfig();
     void createConfig();
-    void writeInConfig(QString text);
-    QString readInConfig();
+    void writeInConfig(QString key,QString text,QString nameFile);
+    QString readInConfig(QString key,QString anotherValue,QString nameFile);
 };
 
 #endif // CONFIG_H

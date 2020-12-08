@@ -7,17 +7,18 @@
 
 
 #include <config.h>
-
 QSqlDatabase db;
 QString activeTab[2];
+bool isWinterBackground;
+QPalette normalPaleteApplication;
 
 /*
  * connection with SQlite
  */
 void connectDB(){
-   db = QSqlDatabase::addDatabase("QSQLITE");
-   db.setDatabaseName(QApplication::applicationDirPath()+"/"+"EnglishWords.db3");
-   qDebug()<<QApplication::applicationDirPath()+"/"+"EnglishWords.db3";
+    db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(QApplication::applicationDirPath()+"/"+"EnglishWords.db3");
+    qDebug()<<QApplication::applicationDirPath()+"/"+"EnglishWords.db3";
 }
 
 /*
@@ -59,18 +60,27 @@ MainWindow::MainWindow(QWidget *parent)
     connectDB();
 
     /*work with config*/
-    config *conf = new config;
-    conf->createConfig();
-    if(!conf->isNotNullConfig()){
-        conf->writeInConfig("20");
+    config conf;
+    conf.createConfig();
+    int fontSize = conf.readInConfig("sizeFont","20","sizeFont").toInt();
+    ui->Slider_text_size->setValue(fontSize);
+
+    QFont font = ui->words_textEdit->font();
+    font.setPixelSize(ui->Slider_text_size->value());
+    ui->words_textEdit->setFont(font);
+
+    normalPaleteApplication = this->palette();
+    //winter theme
+    if(conf.readInConfig("isWinterBackground","0","isWinterBackground") == "0"){
+        isWinterBackground = false;
     }else{
-        int fontSize = conf->readInConfig().toInt();
-        ui->Slider_text_size->setValue(fontSize);
+        isWinterBackground = true;
+    }
 
-        QFont font = ui->words_textEdit->font();
-        font.setPixelSize(ui->Slider_text_size->value());
-        ui->words_textEdit->setFont(font);
-
+    if(!isWinterBackground){
+        SetNormalBackground();
+    }else{
+        SetBackground();
     }
     /*end work with config*/
 
@@ -90,17 +100,17 @@ void MainWindow::on_addNewWord_clicked()
     /*
      * get data from input fields
      */
-    QString englishWord = ui->english_new_word->toPlainText();
-    QString russianWord = ui->russian_new_word->toPlainText();
-    QString example = ui->example->toPlainText();
-    QString secondFormVerb =  ui->second_form_verb_textedit->toPlainText();
-    QString thirdFormVerb =  ui->third_form_verb_textedit->toPlainText();
+    QString englishWord = ui->english_new_word->text();
+    QString russianWord = ui->russian_new_word->text();
+    QString example = ui->example->text();
+    QString secondFormVerb =  ui->second_form_verb_textedit->text();
+    QString thirdFormVerb =  ui->third_form_verb_textedit->text();
 
     /*
      * work with database
      */
     db.open();
-     QString newWord;
+    QString newWord;
 
     if (secondFormVerb == nullptr && thirdFormVerb == nullptr)
         newWord = "INSERT INTO words (English_word, Russian_word, example) VALUES ( \'" +englishWord+"\' , \'"+russianWord+"\' , \'"+example+ "\' )";
@@ -131,7 +141,7 @@ void MainWindow::on_addNewWord_clicked()
 */
 void MainWindow::on_delete_word_clicked()
 {
-    QString deleteWord = ui->delete_word_textedit->toPlainText();
+    QString deleteWord = ui->delete_word_textedit->text();
 
     db.open();
     QString newWord = "DELETE FROM words WHERE English_word = \'"+deleteWord+"\'";
@@ -153,11 +163,11 @@ void MainWindow::on_search_textChanged()
     /*
      * word to find
      */
-    QString word = ui->search->toPlainText();
+    QString word = ui->search->text();
     db.open();
     QSqlQuery query;
     query.exec("SELECT id, English_word, Russian_word, example, second_form_verb, third_form_verb FROM words");
-     while (query.next()) {
+    while (query.next()) {
         QString englishWord = query.value(1).toString();
         if(word == englishWord){
             QString englishWord = query.value(1).toString();
@@ -175,7 +185,7 @@ void MainWindow::on_search_textChanged()
         }else{
             ui->words_textEdit->setText("");
         }
-     }
+    }
     db.close();
 }
 
@@ -183,7 +193,7 @@ void MainWindow::on_search_textChanged()
 
 void MainWindow::on_english_edit_word_textChanged()
 {
-    QString English_Word = ui->english_edit_word->toPlainText();
+    QString English_Word = ui->english_edit_word->text();
     db.open();
     QSqlQuery query;
     query.exec("SELECT English_word, Russian_word, example, second_form_verb, third_form_verb FROM words");
@@ -207,17 +217,18 @@ void MainWindow::on_english_edit_word_textChanged()
 
 void MainWindow::on_save_edited_clicked()
 {
-    QString English_Word = ui->english_edit_word->toPlainText();
+    QString English_Word = ui->english_edit_word->text();
     if(English_Word != nullptr && English_Word != "" && English_Word != " "){
         db.open();
 
-        QString editedRussian_word = ui->russian_edit_word->toPlainText();
-        QString editedExample = ui->example_edit->toPlainText();
-        QString second_form = ui->second_form_verb_edit_textedit->toPlainText();
-        QString third_form = ui->third_form_verb_edit_textedit->toPlainText();
+        QString editedRussian_word = ui->russian_edit_word->text();
+        QString editedExample = ui->example_edit->text();
+        QString second_form = ui->second_form_verb_edit_textedit->text();
+        QString third_form = ui->third_form_verb_edit_textedit->text();
 
-        QString command = "UPDATE words SET Russian_word = \'"+editedRussian_word+"\', example = \'"+editedExample+"\', second_form_verb =  \'"+second_form+"\', third_form_verb =  \'"+third_form+"\' "
-                                                                                                                                                                                              "WHERE English_word = \'"+English_Word+"\'";
+        QString command = "UPDATE words SET Russian_word = \'"+editedRussian_word+"\', example = \'"+editedExample+
+                "\', second_form_verb =  \'"+second_form+"\', third_form_verb =  \'"+third_form+"\' "
+                                                                                                "WHERE English_word = \'"+English_Word+"\'";
         QSqlQuery query;
         query.exec(command);
         db.close();
@@ -262,7 +273,7 @@ void MainWindow::on_words_e_clicked()
 
 void MainWindow::on_words_f_clicked()
 {
-  setValueInWord_textEdit("f","F");
+    setValueInWord_textEdit("f","F");
 }
 
 void MainWindow::on_words_g_clicked()
@@ -357,12 +368,12 @@ void MainWindow::on_words_x_clicked()
 
 void MainWindow::on_words_y_clicked()
 {
-     setValueInWord_textEdit("y","Y");
+    setValueInWord_textEdit("y","Y");
 }
 
 void MainWindow::on_words_z_clicked()
 {
-     setValueInWord_textEdit("z","Z");
+    setValueInWord_textEdit("z","Z");
 }
 
 
@@ -379,5 +390,142 @@ void MainWindow::on_Slider_text_size_actionTriggered(int action)
 
     config *conf = new config;
     QString value = QString::number(ui->Slider_text_size->value());
-    conf->writeInConfig(value);
+    conf->writeInConfig("sizeFont",value,"sizeFont");
+}
+
+void MainWindow::on_winterBackground_clicked()
+{
+
+
+    config *conf = new config;
+    if(!isWinterBackground){
+        isWinterBackground = true;
+        conf->writeInConfig("isWinterBackground","1","isWinterBackground");
+        SetBackground();
+    }
+    else {
+        isWinterBackground = false;
+        conf->writeInConfig("isWinterBackground","0","isWinterBackground");
+        SetNormalBackground();
+    }
+
+}
+
+QFont MainWindow::setQLabeWinterlFont(QLabel *label_){
+    QFont fontLabel;
+    fontLabel= label_->font();
+    fontLabel.setPointSize(15);
+    return fontLabel;
+}
+
+void MainWindow::SetBackground(){
+    QPixmap bkgnd(QApplication::applicationDirPath()+"/img.png");
+    bkgnd = bkgnd.scaled(this->size(), Qt::IgnoreAspectRatio);
+    QPalette palette;
+    palette.setBrush(QPalette::Background, bkgnd);
+    this->setPalette(palette);
+
+    EditColorApplication("0","0","0");
+    EditColorApplication("0","0","0","200");
+
+}
+
+void MainWindow::SetNormalBackground(){
+    this->setPalette(normalPaleteApplication);
+
+    EditColorApplication("255","255","255");
+    EditColorApplication("30","30","30","255");
+}
+
+void MainWindow::EditColorApplication(QString first_color,QString second_color,QString third_color){
+    /*
+    ui->search_label->setFont(setQLabeWinterlFont(ui->search_label));
+    ui->search_label->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+    ui->example_label->setFont(setQLabeWinterlFont(ui->example_label));
+    ui->example_label->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+    ui->example_label_2->setFont(setQLabeWinterlFont(ui->example_label_2));
+    ui->example_label_2->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+    ui->English_label->setFont(setQLabeWinterlFont(ui->English_label));
+    ui->English_label->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+    ui->English_label_2->setFont(setQLabeWinterlFont(ui->English_label_2));
+    ui->English_label_2->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+    ui->russian_label->setFont(setQLabeWinterlFont(ui->russian_label));
+    ui->russian_label->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+    ui->russian_label_2->setFont(setQLabeWinterlFont(ui->russian_label_2));
+    ui->russian_label_2->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+    ui->second_form_verb->setFont(setQLabeWinterlFont(ui->second_form_verb));
+    ui->second_form_verb->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+    ui->second_form_verb_2->setFont(setQLabeWinterlFont(ui->second_form_verb_2));
+    ui->second_form_verb_2->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+    ui->third_form_verb->setFont(setQLabeWinterlFont(ui->third_form_verb));
+    ui->third_form_verb->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+
+    ui->third_form_verb_2->setFont(setQLabeWinterlFont(ui->third_form_verb_2));
+    ui->third_form_verb_2->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+    ui->deleted_word_label->setFont(setQLabeWinterlFont(ui->deleted_word_label));
+    ui->deleted_word_label->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+
+    ui->sizeFontLabal->setFont(setQLabeWinterlFont(ui->sizeFontLabal));
+    ui->sizeFontLabal->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
+    */
+
+}
+void MainWindow::EditColorApplication(QString first_color,QString second_color,QString third_color,QString fourth_color){
+    ui->search->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->english_new_word->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->russian_new_word->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->example->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->second_form_verb_textedit->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->third_form_verb_textedit->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->english_edit_word->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->russian_edit_word->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->example_edit->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->second_form_verb_edit_textedit->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->third_form_verb_edit_textedit->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->delete_word_textedit->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+
+    ui->words_textEdit->setStyleSheet("QTextEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+
+    ui->words_a->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_b->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_c->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_d->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_e->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_f->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_g->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_h->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_i->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_j->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_k->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_l->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_m->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_n->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_o->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_p->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_q->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_r->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_s->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_t->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_u->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_v->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_w->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_x->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_y->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->words_z->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+
+
+    ui->addNewWord->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->save_edited->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->delete_word->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    ui->winterBackground->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
 }
