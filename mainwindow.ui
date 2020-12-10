@@ -75,7 +75,7 @@
    </palette>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Dictionary</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTextEdit" name="words_textEdit">
@@ -2340,7 +2340,7 @@
      <string>размер шрифта</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="winterBackground">
+   <widget class="QPushButton" name="chooseBackground">
     <property name="geometry">
      <rect>
       <x>10</x>

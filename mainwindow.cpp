@@ -1,17 +1,20 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <config.h>
+
+#include <QDir>
+#include <QFile>
 #include <QDebug>
 
 #include "QtSql/QSqlDatabase"
 #include "QSqlQuery"
 
 
-#include <config.h>
+
 QSqlDatabase db;
 QString activeTab[2];
-bool isWinterBackground;
 QPalette normalPaleteApplication;
-
+QString Background;
 /*
  * connection with SQlite
  */
@@ -70,21 +73,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->words_textEdit->setFont(font);
 
     normalPaleteApplication = this->palette();
-    //winter theme
-    if(conf.readInConfig("isWinterBackground","0","isWinterBackground") == "0"){
-        isWinterBackground = false;
-    }else{
-        isWinterBackground = true;
-    }
+    PutBackgroundOnMainWindow();
+    if(Background == "normal")
 
-    if(!isWinterBackground){
-        SetNormalBackground();
-    }else{
-        SetBackground();
-    }
     /*end work with config*/
 
     setValueInWord_textEdit("a","A");
+    on_words_a_clicked();
 }
 
 MainWindow::~MainWindow()
@@ -393,6 +388,7 @@ void MainWindow::on_Slider_text_size_actionTriggered(int action)
     conf->writeInConfig("sizeFont",value,"sizeFont");
 }
 
+/*
 void MainWindow::on_winterBackground_clicked()
 {
 
@@ -410,7 +406,7 @@ void MainWindow::on_winterBackground_clicked()
     }
 
 }
-
+*/
 QFont MainWindow::setQLabeWinterlFont(QLabel *label_){
     QFont fontLabel;
     fontLabel= label_->font();
@@ -418,8 +414,8 @@ QFont MainWindow::setQLabeWinterlFont(QLabel *label_){
     return fontLabel;
 }
 
-void MainWindow::SetBackground(){
-    QPixmap bkgnd(QApplication::applicationDirPath()+"/img.png");
+void MainWindow::SetBackground(QString _nameBackground){
+    QPixmap bkgnd(QApplication::applicationDirPath()+"/img/"+_nameBackground);
     bkgnd = bkgnd.scaled(this->size(), Qt::IgnoreAspectRatio);
     QPalette palette;
     palette.setBrush(QPalette::Background, bkgnd);
@@ -527,5 +523,57 @@ void MainWindow::EditColorApplication(QString first_color,QString second_color,Q
     ui->addNewWord->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
     ui->save_edited->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
     ui->delete_word->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
-    ui->winterBackground->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+    //ui->winterBackground->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
+}
+
+void MainWindow::chooseBackground(){
+    //сюда надо передать имя кнопки
+    QPushButton* button = qobject_cast<QPushButton*>(sender());
+    if(!button)
+        return;
+    config *conf = new config;
+    conf->writeInConfig("Background",button->text(),"BackgroundMainWindow");
+    if(button->text() != "normal_background")
+        SetBackground(button->text());
+    else
+        SetNormalBackground();
+}
+
+void MainWindow::createWindowChooseBackground(){
+    QWidget *chooseBackground = new QWidget;
+    QDir directoryImg(QApplication::applicationDirPath()+"/img");
+    if(!directoryImg.exists()){
+        directoryImg.mkdir(QApplication::applicationDirPath()+"/img");
+    }
+    QFileInfoList dirContent = directoryImg.entryInfoList(QStringList()
+                                                          << "*.jpg"<<"*.png",
+                                                          QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
+    qDebug()<<"images : "<<dirContent.count();
+    QVBoxLayout *_layout = new QVBoxLayout;
+    QPushButton *setBackgroundNormalButton = new QPushButton;
+    setBackgroundNormalButton->setText("normal_background");
+    _layout->addWidget(setBackgroundNormalButton);
+    QObject::connect(setBackgroundNormalButton,&QPushButton::clicked,this,&MainWindow::chooseBackground);
+    for(int i = 0;i<dirContent.count();i++){
+        QPushButton *button = new QPushButton;
+        button->setText(dirContent[i].fileName());
+        _layout->addWidget(button);
+        QObject::connect(button,&QPushButton::clicked,this,&MainWindow::chooseBackground);
+    }
+    chooseBackground->setLayout(_layout);
+    chooseBackground->show();
+}
+
+void MainWindow::on_chooseBackground_clicked()
+{
+    createWindowChooseBackground();
+}
+
+void MainWindow::PutBackgroundOnMainWindow(){
+    config *conf = new config;
+    Background = conf->readInConfig("Background","normal","BackgroundMainWindow");
+    if(Background != "normal_background")
+        SetBackground(Background);
+    else
+        SetNormalBackground();
 }

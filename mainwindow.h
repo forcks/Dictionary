@@ -3,6 +3,10 @@
 
 #include <QMainWindow>
 #include <QLabel>
+#include <QString>
+#include <QPushButton>
+#include <QDebug>
+#include <QList>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -16,6 +20,17 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+
+    void EditColorApplication(QString first_color,QString second_color,QString third_color);
+
+    void EditColorApplication(QString first_color,QString second_color,QString third_color,QString fourth_color);
+
+    void createWindowChooseBackground();
+
+    void PutBackgroundOnMainWindow();
+
+public slots:
+    void chooseBackground();
 private slots:
 
     void setValueInWord_textEdit(QString little_letter,QString big_letter);
@@ -90,19 +105,17 @@ private slots:
 
     void on_Slider_text_size_actionTriggered(int action);
 
-    void on_winterBackground_clicked();
+    //void on_winterBackground_clicked();
 
     QFont setQLabeWinterlFont(QLabel *label);
 
-    void SetBackground();
+    void SetBackground(QString _nameBackground);
 
     void SetNormalBackground();
 
-    void EditColorApplication(QString first_color,QString second_color,QString third_color);
+    void on_chooseBackground_clicked();
 
-    void EditColorApplication(QString first_color,QString second_color,QString third_color,QString fourth_color);
-
-    private:
+private:
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H
