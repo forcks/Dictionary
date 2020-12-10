@@ -138,7 +138,7 @@ void MainWindow::on_addNewWord_clicked()
     setValueInWord_textEdit(activeTab[0],activeTab[1]);
 }
 
-    /*
+/*
     * delete don't need word
     */
 void MainWindow::on_delete_word_clicked()
@@ -247,6 +247,7 @@ void MainWindow::on_save_edited_clicked()
         setValueInWord_textEdit(activeTab[0],activeTab[1]);
     }
 }
+
 
 void MainWindow::on_words_a_clicked()
 {
@@ -380,7 +381,6 @@ void MainWindow::on_words_z_clicked()
 {
     setValueInWord_textEdit("z","Z");
 }
-
 
 void MainWindow::on_horizontalSlider_actionTriggered(int action)
 {
