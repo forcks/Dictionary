@@ -65,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
     /*work with config*/
     config conf;
     conf.createConfig();
+    //select size font
     int fontSize = conf.readInConfig("sizeFont","20","sizeFont").toInt();
     ui->Slider_text_size->setValue(fontSize);
 
@@ -72,14 +73,20 @@ MainWindow::MainWindow(QWidget *parent)
     font.setPixelSize(ui->Slider_text_size->value());
     ui->words_textEdit->setFont(font);
 
+    //remember the default palette
     normalPaleteApplication = this->palette();
+
+    QFile configBaground(QApplication::applicationDirPath()+"/BackgroundMainWindow.json");
+    if(!configBaground.exists()){
+        config *conf = new config;
+        conf->writeInConfig("Background","normal_background","BackgroundMainWindow");
+    }
     PutBackgroundOnMainWindow();
-    if(Background == "normal")
 
     /*end work with config*/
 
+    //set the defalt letter
     setValueInWord_textEdit("a","A");
-    on_words_a_clicked();
 }
 
 MainWindow::~MainWindow()
@@ -131,17 +138,20 @@ void MainWindow::on_addNewWord_clicked()
     setValueInWord_textEdit(activeTab[0],activeTab[1]);
 }
 
-/*
-* delete don't need word
-*/
+    /*
+    * delete don't need word
+    */
 void MainWindow::on_delete_word_clicked()
 {
+    /*
+    * get the delete word
+    */
     QString deleteWord = ui->delete_word_textedit->text();
 
     db.open();
-    QString newWord = "DELETE FROM words WHERE English_word = \'"+deleteWord+"\'";
+    QString commandDeletedWord = "DELETE FROM words WHERE English_word = \'"+deleteWord+"\'";
     QSqlQuery query;
-    query.exec(newWord);
+    query.exec(commandDeletedWord);
     db.close();
 
     ui->delete_word_textedit->clear();
@@ -382,37 +392,14 @@ void MainWindow::on_Slider_text_size_actionTriggered(int action)
     font.setPixelSize(ui->Slider_text_size->value());
     ui->words_textEdit->setFont(font);
 
-
+    /*
+     * save size text in config
+     */
     config *conf = new config;
     QString value = QString::number(ui->Slider_text_size->value());
     conf->writeInConfig("sizeFont",value,"sizeFont");
 }
 
-/*
-void MainWindow::on_winterBackground_clicked()
-{
-
-
-    config *conf = new config;
-    if(!isWinterBackground){
-        isWinterBackground = true;
-        conf->writeInConfig("isWinterBackground","1","isWinterBackground");
-        SetBackground();
-    }
-    else {
-        isWinterBackground = false;
-        conf->writeInConfig("isWinterBackground","0","isWinterBackground");
-        SetNormalBackground();
-    }
-
-}
-*/
-QFont MainWindow::setQLabeWinterlFont(QLabel *label_){
-    QFont fontLabel;
-    fontLabel= label_->font();
-    fontLabel.setPointSize(15);
-    return fontLabel;
-}
 
 void MainWindow::SetBackground(QString _nameBackground){
     QPixmap bkgnd(QApplication::applicationDirPath()+"/img/"+_nameBackground);
@@ -421,61 +408,15 @@ void MainWindow::SetBackground(QString _nameBackground){
     palette.setBrush(QPalette::Background, bkgnd);
     this->setPalette(palette);
 
-    EditColorApplication("0","0","0");
     EditColorApplication("0","0","0","200");
 
 }
 
 void MainWindow::SetNormalBackground(){
     this->setPalette(normalPaleteApplication);
-
-    EditColorApplication("255","255","255");
     EditColorApplication("30","30","30","255");
 }
 
-void MainWindow::EditColorApplication(QString first_color,QString second_color,QString third_color){
-    /*
-    ui->search_label->setFont(setQLabeWinterlFont(ui->search_label));
-    ui->search_label->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-    ui->example_label->setFont(setQLabeWinterlFont(ui->example_label));
-    ui->example_label->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-    ui->example_label_2->setFont(setQLabeWinterlFont(ui->example_label_2));
-    ui->example_label_2->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-    ui->English_label->setFont(setQLabeWinterlFont(ui->English_label));
-    ui->English_label->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-    ui->English_label_2->setFont(setQLabeWinterlFont(ui->English_label_2));
-    ui->English_label_2->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-    ui->russian_label->setFont(setQLabeWinterlFont(ui->russian_label));
-    ui->russian_label->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-    ui->russian_label_2->setFont(setQLabeWinterlFont(ui->russian_label_2));
-    ui->russian_label_2->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-    ui->second_form_verb->setFont(setQLabeWinterlFont(ui->second_form_verb));
-    ui->second_form_verb->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-    ui->second_form_verb_2->setFont(setQLabeWinterlFont(ui->second_form_verb_2));
-    ui->second_form_verb_2->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-    ui->third_form_verb->setFont(setQLabeWinterlFont(ui->third_form_verb));
-    ui->third_form_verb->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-
-    ui->third_form_verb_2->setFont(setQLabeWinterlFont(ui->third_form_verb_2));
-    ui->third_form_verb_2->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-    ui->deleted_word_label->setFont(setQLabeWinterlFont(ui->deleted_word_label));
-    ui->deleted_word_label->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-
-    ui->sizeFontLabal->setFont(setQLabeWinterlFont(ui->sizeFontLabal));
-    ui->sizeFontLabal->setStyleSheet("color: rgb("+first_color+","+second_color+","+third_color+")");
-    */
-
-}
 void MainWindow::EditColorApplication(QString first_color,QString second_color,QString third_color,QString fourth_color){
     ui->search->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
     ui->english_new_word->setStyleSheet("QLineEdit {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
@@ -523,11 +464,9 @@ void MainWindow::EditColorApplication(QString first_color,QString second_color,Q
     ui->addNewWord->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
     ui->save_edited->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
     ui->delete_word->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
-    //ui->winterBackground->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
 }
 
 void MainWindow::chooseBackground(){
-    //сюда надо передать имя кнопки
     QPushButton* button = qobject_cast<QPushButton*>(sender());
     if(!button)
         return;
@@ -554,6 +493,7 @@ void MainWindow::createWindowChooseBackground(){
     setBackgroundNormalButton->setText("normal_background");
     _layout->addWidget(setBackgroundNormalButton);
     QObject::connect(setBackgroundNormalButton,&QPushButton::clicked,this,&MainWindow::chooseBackground);
+    //create button ,the number of buttons is equal to the number of images + 1
     for(int i = 0;i<dirContent.count();i++){
         QPushButton *button = new QPushButton;
         button->setText(dirContent[i].fileName());

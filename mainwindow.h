@@ -21,8 +21,6 @@ public:
     ~MainWindow();
 
 
-    void EditColorApplication(QString first_color,QString second_color,QString third_color);
-
     void EditColorApplication(QString first_color,QString second_color,QString third_color,QString fourth_color);
 
     void createWindowChooseBackground();
@@ -104,10 +102,6 @@ private slots:
     void on_horizontalSlider_actionTriggered(int action);
 
     void on_Slider_text_size_actionTriggered(int action);
-
-    //void on_winterBackground_clicked();
-
-    QFont setQLabeWinterlFont(QLabel *label);
 
     void SetBackground(QString _nameBackground);
 
