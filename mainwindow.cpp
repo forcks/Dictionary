@@ -5,11 +5,14 @@
 #include <QDir>
 #include <QFile>
 #include <QDebug>
+#include <QScrollArea>
 
 #include "QtSql/QSqlDatabase"
 #include "QSqlQuery"
 
-
+//
+QString RGBA_text_color[4];
+//
 
 QSqlDatabase db;
 QString activeTab[2];
@@ -466,6 +469,29 @@ void MainWindow::EditColorApplication(QString first_color,QString second_color,Q
     ui->delete_word->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
 }
 
+void MainWindow::EditColorText(){
+    QString first_color, second_color, third_color, fourth_color;
+    first_color = RGBA_text_color[0];
+    second_color = RGBA_text_color[1];
+    third_color = RGBA_text_color[2];
+    fourth_color = RGBA_text_color[3];
+
+    ui->search_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->example_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->example_label_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->English_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->English_label_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->russian_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->russian_label_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->second_form_verb->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->second_form_verb_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->third_form_verb->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->third_form_verb_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->deleted_word_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+    ui->sizeFontLabal->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+
+}
+
 void MainWindow::chooseBackground(){
     QPushButton* button = qobject_cast<QPushButton*>(sender());
     if(!button)
@@ -478,7 +504,10 @@ void MainWindow::chooseBackground(){
         SetNormalBackground();
 }
 
-void MainWindow::createWindowChooseBackground(){
+void MainWindow::createWindowCustomizationApplication(){
+    /*
+     * create button select background
+     */
     QWidget *chooseBackground = new QWidget;
     QDir directoryImg(QApplication::applicationDirPath()+"/img");
     if(!directoryImg.exists()){
@@ -501,12 +530,65 @@ void MainWindow::createWindowChooseBackground(){
         QObject::connect(button,&QPushButton::clicked,this,&MainWindow::chooseBackground);
     }
     chooseBackground->setLayout(_layout);
-    chooseBackground->show();
+
+    QScrollArea *scrollAreaChooseBackground = new QScrollArea;
+    scrollAreaChooseBackground->setWidget(chooseBackground);
+    scrollAreaChooseBackground->resize(200,300);
+    scrollAreaChooseBackground->show();
+
+    QWidget *chooseTextColor = new QWidget;
+    QGridLayout *rgba_layout = new QGridLayout;
+
+    QLabel *nameWindow = new QLabel;
+    nameWindow->setText("edit application color font");
+    rgba_layout->addWidget(nameWindow,0,0);
+
+    QLabel *r = new QLabel;
+    r->setText("r");
+
+    QLabel *g = new QLabel;
+    g->setText("g");
+
+    QLabel *b = new QLabel;
+    b->setText("b");
+
+    QLabel *a = new QLabel;
+    a->setText("a");
+
+    rgba_layout->addWidget(r,1,0);
+    rgba_layout->addWidget(g,1,1);
+    rgba_layout->addWidget(b,1,2);
+    rgba_layout->addWidget(a,1,3);
+
+    QLineEdit *r_edit = new QLineEdit;
+    rgba_layout->addWidget(r_edit,2,0);
+    connect(r_edit,&QLineEdit::textEdited,this,&MainWindow::setRcolor);
+
+    QLineEdit *g_edit = new QLineEdit;
+    rgba_layout->addWidget(g_edit,2,1);
+    connect(g_edit,&QLineEdit::textEdited,this,&MainWindow::setGcolor);
+
+    QLineEdit *b_edit = new QLineEdit;
+    rgba_layout->addWidget(b_edit,2,2);
+    connect(b_edit,&QLineEdit::textEdited,this,&MainWindow::setBcolor);
+
+    QLineEdit *a_edit = new QLineEdit;
+    rgba_layout->addWidget(a_edit,2,3);
+    connect(a_edit,&QLineEdit::textEdited,this,&MainWindow::setAcolor);
+
+
+    QPushButton *confirmButton = new QPushButton;
+    confirmButton->setText("confirm");
+    QObject::connect(confirmButton,&QPushButton::clicked,this,&MainWindow::EditColorText);
+    rgba_layout->addWidget(confirmButton,3,4);
+
+    chooseTextColor->setLayout(rgba_layout);
+    chooseTextColor->show();
 }
 
 void MainWindow::on_chooseBackground_clicked()
 {
-    createWindowChooseBackground();
+    createWindowCustomizationApplication();
 }
 
 void MainWindow::PutBackgroundOnMainWindow(){
@@ -516,4 +598,21 @@ void MainWindow::PutBackgroundOnMainWindow(){
         SetBackground(Background);
     else
         SetNormalBackground();
+}
+
+void MainWindow::setRcolor(){
+    QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
+    RGBA_text_color[0] = lineEdit->text();
+}
+void MainWindow::setGcolor(){
+    QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
+    RGBA_text_color[1] = lineEdit->text();
+}
+void MainWindow::setBcolor(){
+    QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
+    RGBA_text_color[2] = lineEdit->text();
+}
+void MainWindow::setAcolor(){
+    QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
+    RGBA_text_color[3] = lineEdit->text();
 }

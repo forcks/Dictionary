@@ -23,12 +23,25 @@ public:
 
     void EditColorApplication(QString first_color,QString second_color,QString third_color,QString fourth_color);
 
-    void createWindowChooseBackground();
+
+    void createWindowCustomizationApplication();
 
     void PutBackgroundOnMainWindow();
 
 public slots:
     void chooseBackground();
+
+    void SetNormalBackground();
+
+    void EditColorText();
+
+    void setRcolor();
+
+    void setGcolor();
+
+    void setBcolor();
+
+    void setAcolor();
 private slots:
 
     void setValueInWord_textEdit(QString little_letter,QString big_letter);
@@ -105,7 +118,6 @@ private slots:
 
     void SetBackground(QString _nameBackground);
 
-    void SetNormalBackground();
 
     void on_chooseBackground_clicked();
 
