@@ -32,7 +32,7 @@ public:
 
     void PutBackgroundOnMainWindow();
 
-    void SetFontColor(QString first_color,QString second_color,QString third_color,QString fourth_color);
+    void SetFontColor(QColor color);
 
     void SetSizeFontApplication(QString sizeFont);
 
@@ -43,6 +43,7 @@ public slots:
 
     void EditFontApplication();
 
+    /*
     void setRcolor();
 
     void setGcolor();
@@ -52,6 +53,7 @@ public slots:
     void setAcolor();
 
     void setSizeFontApplication();
+    */
 private slots:
 
     void setValueInWord_textEdit(QString little_letter,QString big_letter);

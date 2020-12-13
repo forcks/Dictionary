@@ -6,6 +6,8 @@
 #include <QFile>
 #include <QDebug>
 #include <QScrollArea>
+#include <QColor>
+#include <QColorDialog>
 
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -15,7 +17,6 @@
 #include "QSqlQuery"
 
 //
-QString RGBA_text_color[4];
 QString sizeApplicationText;
 //
 
@@ -97,7 +98,10 @@ MainWindow::MainWindow(QWidget *parent)
     second_color = conf.readInConfig("g","255","rgba");
     third_color = conf.readInConfig("b","255","rgba");
     fourth_color = conf.readInConfig("a","255","rgba");
-    SetFontColor(first_color,second_color,third_color,fourth_color);
+
+    QColor ApplicationColorText;
+    ApplicationColorText = conf.readInConfig("color","#FFFFFF","ApplicationColor");
+    SetFontColor(ApplicationColorText);
 
     sizeApplicationText = conf.readInConfig("sizeApplicationFont","20","sizeApplicationFont");
     SetSizeFontApplication(sizeApplicationText);
@@ -484,20 +488,25 @@ void MainWindow::EditColorApplication(QString first_color,QString second_color,Q
     ui->delete_word->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
 }
 
-void MainWindow::SetFontColor(QString first_color,QString second_color,QString third_color,QString fourth_color){
-    ui->search_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->example_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->example_label_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->English_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->English_label_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->russian_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->russian_label_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->second_form_verb->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->second_form_verb_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->third_form_verb->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->third_form_verb_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->deleted_word_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
-    ui->sizeFontLabal->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
+void MainWindow::SetFontColor(QColor color){
+
+
+    QPalette palette;
+    palette = ui->search_label->palette();
+    palette.setBrush(QPalette::WindowText,color);
+    ui->search_label->setPalette(palette);
+    ui->example_label->setPalette(palette);
+    ui->example_label_2->setPalette(palette);
+    ui->English_label->setPalette(palette);
+    ui->English_label_2->setPalette(palette);
+    ui->russian_label->setPalette(palette);
+    ui->russian_label_2->setPalette(palette);
+    ui->second_form_verb->setPalette(palette);
+    ui->second_form_verb_2->setPalette(palette);
+    ui->third_form_verb->setPalette(palette);
+    ui->third_form_verb_2->setPalette(palette);
+    ui->deleted_word_label->setPalette(palette);
+    ui->sizeFontLabal->setPalette(palette);
 
 }
 
@@ -521,38 +530,19 @@ void MainWindow::SetSizeFontApplication(QString sizeFont){
     ui->sizeFontLabal->setFont(ApplicationFont);
 }
 void MainWindow::EditFontApplication(){
-    QString first_color, second_color, third_color, fourth_color;
-    if(RGBA_text_color[0] != " " && RGBA_text_color[1] != " " && RGBA_text_color[2] != " " && RGBA_text_color[3] != " " &&
-            RGBA_text_color[0] != "" && RGBA_text_color[1] != "" && RGBA_text_color[2] != "" && RGBA_text_color[3] != ""){
-        first_color = RGBA_text_color[0];
-        second_color = RGBA_text_color[1];
-        third_color = RGBA_text_color[2];
-        fourth_color = RGBA_text_color[3];
 
-        SetFontColor(first_color, second_color, third_color, fourth_color);
+        QColor color = QColorDialog::getColor();
+        SetFontColor(color);
         QString nameFile;
-        nameFile = "rgba";
+        nameFile = "Application_Color";
         QJsonDocument _jsonDoc;
         QJsonObject jsonObj;
-        //jsonObj.insert(key,text);
-        jsonObj["r"]=first_color;
-        jsonObj["g"]=second_color;
-        jsonObj["b"]=third_color;
-        jsonObj["a"]=fourth_color;
         _jsonDoc.setObject(jsonObj);
 
         QFile configFile(QApplication::applicationDirPath()+"/"+nameFile+".json");
         configFile.open(QFile::WriteOnly);
         configFile.write(_jsonDoc.toJson());
     }
-    if(sizeApplicationText != "" && sizeApplicationText != " "){
-        SetSizeFontApplication(sizeApplicationText);
-
-        config conf;
-        conf.writeInConfig("sizeApplicationFont",sizeApplicationText,"sizeApplicationFont");
-    }
-}
-
 void MainWindow::chooseBackground(){
     QPushButton* button = qobject_cast<QPushButton*>(sender());
     if(!button)
@@ -566,6 +556,7 @@ void MainWindow::chooseBackground(){
 }
 
 void MainWindow::createWindowCustomizationApplication(){
+
     QWidget *applicationCustomization = new QWidget;
     QGridLayout *mainLayout = new QGridLayout;
 
@@ -584,63 +575,13 @@ void MainWindow::createWindowCustomizationApplication(){
 }
 
 void MainWindow::createWindowEditTextColorApplication(){
-    QWidget *chooseTextColor = new QWidget;
-    QGridLayout *rgba_layout = new QGridLayout;
+    QColor color = QColorDialog::getColor(Qt::white);
+    SetFontColor(color);
 
-    QLabel *nameWindow = new QLabel;
-    nameWindow->setText("edit application color font");
-    rgba_layout->addWidget(nameWindow,0,0);
+    qDebug()<<color.name();
 
-    QLabel *size_color_label = new QLabel;
-    size_color_label->setText("edit size text application");
-    rgba_layout->addWidget(size_color_label,0,4);
-
-    QLabel *r = new QLabel;
-    r->setText("r");
-
-    QLabel *g = new QLabel;
-    g->setText("g");
-
-    QLabel *b = new QLabel;
-    b->setText("b");
-
-    QLabel *a = new QLabel;
-    a->setText("a");
-
-    rgba_layout->addWidget(r,1,0);
-    rgba_layout->addWidget(g,1,1);
-    rgba_layout->addWidget(b,1,2);
-    rgba_layout->addWidget(a,1,3);
-
-    QLineEdit *r_edit = new QLineEdit;
-    rgba_layout->addWidget(r_edit,2,0);
-    connect(r_edit,&QLineEdit::textEdited,this,&MainWindow::setRcolor);
-
-    QLineEdit *g_edit = new QLineEdit;
-    rgba_layout->addWidget(g_edit,2,1);
-    connect(g_edit,&QLineEdit::textEdited,this,&MainWindow::setGcolor);
-
-    QLineEdit *b_edit = new QLineEdit;
-    rgba_layout->addWidget(b_edit,2,2);
-    connect(b_edit,&QLineEdit::textEdited,this,&MainWindow::setBcolor);
-
-    QLineEdit *a_edit = new QLineEdit;
-    rgba_layout->addWidget(a_edit,2,3);
-    connect(a_edit,&QLineEdit::textEdited,this,&MainWindow::setAcolor);
-
-
-    QLineEdit *size_font_application = new QLineEdit;
-    rgba_layout->addWidget(size_font_application,2,4);
-    connect(size_font_application,&QLineEdit::textEdited,this,&MainWindow::setSizeFontApplication);
-
-
-    QPushButton *confirmButton = new QPushButton;
-    confirmButton->setText("confirm");
-    connect(confirmButton,&QPushButton::clicked,this,&MainWindow::EditFontApplication);
-    rgba_layout->addWidget(confirmButton,3,4);
-
-    chooseTextColor->setLayout(rgba_layout);
-    chooseTextColor->show();
+    config conf;
+    conf.writeInConfig("color",color.name(),"ApplicationColor");
 }
 
 void MainWindow::createWindowEditBackgroundApplication(){
@@ -685,27 +626,4 @@ void MainWindow::PutBackgroundOnMainWindow(){
         SetBackground(Background);
     else
         SetNormalBackground();
-}
-
-void MainWindow::setRcolor(){
-    QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
-    RGBA_text_color[0] = lineEdit->text();
-}
-void MainWindow::setGcolor(){
-    QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
-    RGBA_text_color[1] = lineEdit->text();
-}
-void MainWindow::setBcolor(){
-    QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
-    RGBA_text_color[2] = lineEdit->text();
-}
-void MainWindow::setAcolor(){
-    QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
-    RGBA_text_color[3] = lineEdit->text();
-}
-
-void MainWindow::setSizeFontApplication(){
-
-    QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
-    sizeApplicationText = lineEdit->text();
 }
