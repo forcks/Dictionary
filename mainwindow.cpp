@@ -7,11 +7,16 @@
 #include <QDebug>
 #include <QScrollArea>
 
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
+
 #include "QtSql/QSqlDatabase"
 #include "QSqlQuery"
 
 //
 QString RGBA_text_color[4];
+QString sizeApplicationText;
 //
 
 QSqlDatabase db;
@@ -86,6 +91,16 @@ MainWindow::MainWindow(QWidget *parent)
     }
     PutBackgroundOnMainWindow();
 
+
+    QString first_color, second_color, third_color, fourth_color;
+    first_color = conf.readInConfig("r","255","rgba");
+    second_color = conf.readInConfig("g","255","rgba");
+    third_color = conf.readInConfig("b","255","rgba");
+    fourth_color = conf.readInConfig("a","255","rgba");
+    SetFontColor(first_color,second_color,third_color,fourth_color);
+
+    sizeApplicationText = conf.readInConfig("sizeApplicationFont","20","sizeApplicationFont");
+    SetSizeFontApplication(sizeApplicationText);
     /*end work with config*/
 
     //set the defalt letter
@@ -469,13 +484,7 @@ void MainWindow::EditColorApplication(QString first_color,QString second_color,Q
     ui->delete_word->setStyleSheet("QPushButton {background-color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+");}");
 }
 
-void MainWindow::EditColorText(){
-    QString first_color, second_color, third_color, fourth_color;
-    first_color = RGBA_text_color[0];
-    second_color = RGBA_text_color[1];
-    third_color = RGBA_text_color[2];
-    fourth_color = RGBA_text_color[3];
-
+void MainWindow::SetFontColor(QString first_color,QString second_color,QString third_color,QString fourth_color){
     ui->search_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
     ui->example_label->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
     ui->example_label_2->setStyleSheet("color: rgba("+first_color+","+second_color+","+third_color+","+fourth_color+")");
@@ -492,6 +501,58 @@ void MainWindow::EditColorText(){
 
 }
 
+
+void MainWindow::SetSizeFontApplication(QString sizeFont){
+    QFont ApplicationFont;
+    ApplicationFont = ui->example_label->font();
+    ApplicationFont.setPixelSize(sizeFont.toInt());
+    ui->search_label->setFont(ApplicationFont);
+    ui->example_label->setFont(ApplicationFont);
+    ui->example_label_2->setFont(ApplicationFont);
+    ui->English_label->setFont(ApplicationFont);
+    ui->English_label_2->setFont(ApplicationFont);
+    ui->russian_label->setFont(ApplicationFont);
+    ui->russian_label_2->setFont(ApplicationFont);
+    ui->second_form_verb->setFont(ApplicationFont);
+    ui->second_form_verb_2->setFont(ApplicationFont);
+    ui->third_form_verb->setFont(ApplicationFont);
+    ui->third_form_verb_2->setFont(ApplicationFont);
+    ui->deleted_word_label->setFont(ApplicationFont);
+    ui->sizeFontLabal->setFont(ApplicationFont);
+}
+void MainWindow::EditFontApplication(){
+    QString first_color, second_color, third_color, fourth_color;
+    if(RGBA_text_color[0] != " " && RGBA_text_color[1] != " " && RGBA_text_color[2] != " " && RGBA_text_color[3] != " " &&
+            RGBA_text_color[0] != "" && RGBA_text_color[1] != "" && RGBA_text_color[2] != "" && RGBA_text_color[3] != ""){
+        first_color = RGBA_text_color[0];
+        second_color = RGBA_text_color[1];
+        third_color = RGBA_text_color[2];
+        fourth_color = RGBA_text_color[3];
+
+        SetFontColor(first_color, second_color, third_color, fourth_color);
+        QString nameFile;
+        nameFile = "rgba";
+        QJsonDocument _jsonDoc;
+        QJsonObject jsonObj;
+        //jsonObj.insert(key,text);
+        jsonObj["r"]=first_color;
+        jsonObj["g"]=second_color;
+        jsonObj["b"]=third_color;
+        jsonObj["a"]=fourth_color;
+        _jsonDoc.setObject(jsonObj);
+
+        QFile configFile(QApplication::applicationDirPath()+"/"+nameFile+".json");
+        configFile.open(QFile::WriteOnly);
+        configFile.write(_jsonDoc.toJson());
+    }
+    if(sizeApplicationText != "" && sizeApplicationText != " "){
+        SetSizeFontApplication(sizeApplicationText);
+
+        config conf;
+        conf.writeInConfig("sizeApplicationFont",sizeApplicationText,"sizeApplicationFont");
+    }
+}
+
 void MainWindow::chooseBackground(){
     QPushButton* button = qobject_cast<QPushButton*>(sender());
     if(!button)
@@ -505,43 +566,34 @@ void MainWindow::chooseBackground(){
 }
 
 void MainWindow::createWindowCustomizationApplication(){
-    /*
-     * create button select background
-     */
-    QWidget *chooseBackground = new QWidget;
-    QDir directoryImg(QApplication::applicationDirPath()+"/img");
-    if(!directoryImg.exists()){
-        directoryImg.mkdir(QApplication::applicationDirPath()+"/img");
-    }
-    QFileInfoList dirContent = directoryImg.entryInfoList(QStringList()
-                                                          << "*.jpg"<<"*.png",
-                                                          QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
-    qDebug()<<"images : "<<dirContent.count();
-    QVBoxLayout *_layout = new QVBoxLayout;
-    QPushButton *setBackgroundNormalButton = new QPushButton;
-    setBackgroundNormalButton->setText("normal_background");
-    _layout->addWidget(setBackgroundNormalButton);
-    QObject::connect(setBackgroundNormalButton,&QPushButton::clicked,this,&MainWindow::chooseBackground);
-    //create button ,the number of buttons is equal to the number of images + 1
-    for(int i = 0;i<dirContent.count();i++){
-        QPushButton *button = new QPushButton;
-        button->setText(dirContent[i].fileName());
-        _layout->addWidget(button);
-        QObject::connect(button,&QPushButton::clicked,this,&MainWindow::chooseBackground);
-    }
-    chooseBackground->setLayout(_layout);
+    QWidget *applicationCustomization = new QWidget;
+    QGridLayout *mainLayout = new QGridLayout;
 
-    QScrollArea *scrollAreaChooseBackground = new QScrollArea;
-    scrollAreaChooseBackground->setWidget(chooseBackground);
-    scrollAreaChooseBackground->resize(200,300);
-    scrollAreaChooseBackground->show();
+    QPushButton *editTextColor_button = new QPushButton;
+    editTextColor_button->setText("edit application text color");
+    connect(editTextColor_button,&QPushButton::clicked,this,&MainWindow::createWindowEditTextColorApplication);
+    mainLayout->addWidget(editTextColor_button);
 
+    QPushButton *editBackgroundApplication_button = new QPushButton;
+    editBackgroundApplication_button->setText("set application background");
+    connect(editBackgroundApplication_button,&QPushButton::clicked,this,&MainWindow::createWindowEditBackgroundApplication);
+    mainLayout->addWidget(editBackgroundApplication_button);
+
+    applicationCustomization->setLayout(mainLayout);
+    applicationCustomization->show();
+}
+
+void MainWindow::createWindowEditTextColorApplication(){
     QWidget *chooseTextColor = new QWidget;
     QGridLayout *rgba_layout = new QGridLayout;
 
     QLabel *nameWindow = new QLabel;
     nameWindow->setText("edit application color font");
     rgba_layout->addWidget(nameWindow,0,0);
+
+    QLabel *size_color_label = new QLabel;
+    size_color_label->setText("edit size text application");
+    rgba_layout->addWidget(size_color_label,0,4);
 
     QLabel *r = new QLabel;
     r->setText("r");
@@ -577,13 +629,48 @@ void MainWindow::createWindowCustomizationApplication(){
     connect(a_edit,&QLineEdit::textEdited,this,&MainWindow::setAcolor);
 
 
+    QLineEdit *size_font_application = new QLineEdit;
+    rgba_layout->addWidget(size_font_application,2,4);
+    connect(size_font_application,&QLineEdit::textEdited,this,&MainWindow::setSizeFontApplication);
+
+
     QPushButton *confirmButton = new QPushButton;
     confirmButton->setText("confirm");
-    QObject::connect(confirmButton,&QPushButton::clicked,this,&MainWindow::EditColorText);
+    connect(confirmButton,&QPushButton::clicked,this,&MainWindow::EditFontApplication);
     rgba_layout->addWidget(confirmButton,3,4);
 
     chooseTextColor->setLayout(rgba_layout);
     chooseTextColor->show();
+}
+
+void MainWindow::createWindowEditBackgroundApplication(){
+    QWidget *chooseBackground = new QWidget;
+    QDir directoryImg(QApplication::applicationDirPath()+"/img");
+    if(!directoryImg.exists()){
+        directoryImg.mkdir(QApplication::applicationDirPath()+"/img");
+    }
+    QFileInfoList dirContent = directoryImg.entryInfoList(QStringList()
+                                                          << "*.jpg"<<"*.png",
+                                                          QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
+    qDebug()<<"images : "<<dirContent.count();
+    QVBoxLayout *_layout = new QVBoxLayout;
+    QPushButton *setBackgroundNormalButton = new QPushButton;
+    setBackgroundNormalButton->setText("normal_background");
+    _layout->addWidget(setBackgroundNormalButton);
+    QObject::connect(setBackgroundNormalButton,&QPushButton::clicked,this,&MainWindow::chooseBackground);
+    //create button ,the number of buttons is equal to the number of images + 1
+    for(int i = 0;i<dirContent.count();i++){
+        QPushButton *button = new QPushButton;
+        button->setText(dirContent[i].fileName());
+        _layout->addWidget(button);
+        QObject::connect(button,&QPushButton::clicked,this,&MainWindow::chooseBackground);
+    }
+    chooseBackground->setLayout(_layout);
+
+    QScrollArea *scrollAreaChooseBackground = new QScrollArea;
+    scrollAreaChooseBackground->setWidget(chooseBackground);
+    scrollAreaChooseBackground->resize(200,300);
+    scrollAreaChooseBackground->show();
 }
 
 void MainWindow::on_chooseBackground_clicked()
@@ -615,4 +702,10 @@ void MainWindow::setBcolor(){
 void MainWindow::setAcolor(){
     QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
     RGBA_text_color[3] = lineEdit->text();
+}
+
+void MainWindow::setSizeFontApplication(){
+
+    QLineEdit* lineEdit = qobject_cast<QLineEdit*>(sender());
+    sizeApplicationText = lineEdit->text();
 }

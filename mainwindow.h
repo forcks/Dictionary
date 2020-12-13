@@ -26,14 +26,22 @@ public:
 
     void createWindowCustomizationApplication();
 
+    void createWindowEditTextColorApplication();
+
+    void createWindowEditBackgroundApplication();
+
     void PutBackgroundOnMainWindow();
+
+    void SetFontColor(QString first_color,QString second_color,QString third_color,QString fourth_color);
+
+    void SetSizeFontApplication(QString sizeFont);
 
 public slots:
     void chooseBackground();
 
     void SetNormalBackground();
 
-    void EditColorText();
+    void EditFontApplication();
 
     void setRcolor();
 
@@ -42,6 +50,8 @@ public slots:
     void setBcolor();
 
     void setAcolor();
+
+    void setSizeFontApplication();
 private slots:
 
     void setValueInWord_textEdit(QString little_letter,QString big_letter);
